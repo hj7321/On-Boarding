@@ -5,20 +5,24 @@ export const checkProfile = async () => {
   try {
     const response = await api.get("/user");
     const data = response.data;
-    console.log(data);
+    console.log("[checkProfile] 사용자 데이터: ", data);
     return data;
   } catch (error) {
     if (error instanceof AxiosError) {
       console.error(
-        "회원정보 확인 실패: ",
+        "[checkProfile] 회원정보 확인 실패: ",
         error.response?.data || "응답 없음"
       );
     } else {
-      console.error("회원정보 확인 실패 - 알 수 없는 에러: ", error);
+      console.error(
+        "[checkProfile] 회원정보 확인 실패 - 알 수 없는 에러: ",
+        error
+      );
     }
     throw error;
   }
 };
+
 export const changeProfile = async (formData: FormData) => {
   try {
     const response = await api.patch("/profile", formData, {
@@ -27,13 +31,19 @@ export const changeProfile = async (formData: FormData) => {
       },
     });
     const data = response.data;
-    console.log(data);
+    console.log("[changeProfile] 변경 데이터: ", data);
     return data;
   } catch (error) {
     if (error instanceof AxiosError) {
-      console.error("프로필 변경 실패: ", error.response?.data || "응답 없음");
+      console.error(
+        "[changeProfile] 프로필 변경 실패: ",
+        error.response?.data || "응답 없음"
+      );
     } else {
-      console.error("프로필 변경 실패 - 알 수 없는 에러: ", error);
+      console.error(
+        "[changeProfile] 프로필 변경 실패 - 알 수 없는 에러: ",
+        error
+      );
     }
     throw error;
   }

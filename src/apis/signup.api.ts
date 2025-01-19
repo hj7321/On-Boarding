@@ -8,13 +8,16 @@ export const signUp = async (signUpData: SignUpDataType) => {
   try {
     const response = await api.post(path, signUpData);
     const data = response.data;
-    console.log(data);
+    console.log("[signUp] 회원가입 데이터: ", data);
     return data;
   } catch (error) {
     if (error instanceof AxiosError) {
-      console.error("회원가입 실패: ", error.response?.data || "응답 없음");
+      console.error(
+        "[signUp] 회원가입 실패: ",
+        error.response?.data || "응답 없음"
+      );
     } else {
-      console.error("회원가입 실패 - 알 수 없는 에러: ", error);
+      console.error("[signUp] 회원가입 실패 - 알 수 없는 에러: ", error);
     }
     throw error;
   }

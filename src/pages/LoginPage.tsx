@@ -1,18 +1,52 @@
-import clsx from "clsx";
-import { Notify } from "notiflix";
-import { FormEvent, useState } from "react";
+import { Notify, Report } from "notiflix";
+import { FormEvent, useEffect } from "react";
+import { useNavigate } from "react-router";
 import { logIn } from "../apis/login.api";
+import AuthForm from "../components/AuthForm";
+import { LOGIN_INPUTS } from "../constants/inputs";
+import { useAuthForm } from "../hooks/useAuthForm";
 import { useUserStore } from "../stores/user.store";
 
-const inputStyle =
-  "text-black text-[20px] font-bold outline-none px-[10px] py-[5px] rounded-[2px] h-[50px] w-[300px]";
-
 export default function LoginPage() {
-  const [throttling, setThrottling] = useState<boolean>(false); // 버튼 연속 클릭 방지
-  const { setLogin, nickname } = useUserStore();
+  const {
+    inputValues,
+    inputRefs,
+    errorMsgs,
+    throttling,
+    setThrottling,
+    handleInputChange,
+  } = useAuthForm(LOGIN_INPUTS);
+  const { isLoggedIn, setLogin, nickname } = useUserStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isLoggedIn) navigate("/");
+  }, [isLoggedIn, navigate]);
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
-    setThrottling(true);
+    const areInputValuesNull: string[] = inputValues.filter(
+      (value) => value === ""
+    );
+
+    if (areInputValuesNull.length !== 0) {
+      return Report.failure(
+        "<b>로그인 실패</b>",
+        "<p style='text-align: center; font-size: 16px'>회원 정보를 모두 기입해주세요.</p>",
+        "확인",
+        {
+          titleFontSize: "22px",
+          messageFontSize: "16px",
+          fontFamily: "SUIT-Regular",
+          cssAnimationDuration: 800,
+          plainText: false,
+        }
+      );
+    } else if (errorMsgs.some((msg) => msg !== "")) {
+      inputRefs.current[errorMsgs.findIndex((msg) => msg !== "")]!.focus();
+      return;
+    } else {
+      setThrottling(true); // 버튼 한 번 클릭시 즉시 버튼 비활성화
+    }
 
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
@@ -22,6 +56,7 @@ export default function LoginPage() {
 
     const loginData = { id, password };
 
+    // 요청 로직
     try {
       const response = await logIn(loginData);
       setLogin(response.nickname, response.avatar);
@@ -41,7 +76,7 @@ export default function LoginPage() {
         cssAnimationDuration: 800,
       });
     } finally {
-      setThrottling(false);
+      setThrottling(false); // 요청 완료 후 버튼 다시 활성화
     }
   };
 
@@ -49,39 +84,18 @@ export default function LoginPage() {
     <div className="flex flex-col justify-center items-center">
       <p className="text-[40px] mb-[-10px]">🔓</p>
       <h1 className="text-[40px] mb-[50px]">Login</h1>
-      <form
+      <AuthForm
+        inputs={LOGIN_INPUTS}
         onSubmit={(e) => {
           e.preventDefault();
           if (!throttling) handleLogin(e);
         }}
-        className="flex flex-col items-center"
-      >
-        <section className="flex flex-col gap-[15px] justify-center items-center mb-[40px]">
-          <div>
-            <label htmlFor="user-id" className="flex gap-[7px] items-center">
-              아이디
-            </label>
-            <input type="text" id="user-id" className={inputStyle} />
-          </div>
-          <div>
-            <label htmlFor="user-pw" className="flex gap-[7px] items-center">
-              비밀번호
-            </label>
-            <input type="password" id="user-pw" className={inputStyle} />
-          </div>
-        </section>
-        <button
-          type="submit"
-          className={clsx(
-            "w-[200px] h-[50px] rounded-[4px]",
-            throttling
-              ? "hover:cursor-default bg-pink-200 bg-opacity-50 text-opacity-50"
-              : "bg-button-basic border-button-basic hover:bg-button-hover hover:border-button-hover hover:font-bold"
-          )}
-        >
-          로그인하기
-        </button>
-      </form>
+        throttling={throttling}
+        handleInputChange={handleInputChange}
+        inputValues={inputValues}
+        errorMsgs={errorMsgs}
+        inputRefs={inputRefs}
+      />
     </div>
   );
 }
