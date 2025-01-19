@@ -2,7 +2,9 @@ import { AxiosError } from "axios";
 import { LoginDataType } from "../types/data.type";
 import { api } from "./api";
 
-const EXPIRES_IN = import.meta.env.VITE_TOKEN_EXPIRES_IN;
+// const EXPIRES_IN = import.meta.env.VITE_TOKEN_EXPIRES_IN;
+// const EXPIRES_IN = process.env.VITE_TOKEN_EXPIRES_IN;
+const EXPIRES_IN = 3600;
 
 export const logIn = async (loginData: LoginDataType) => {
   const path = `/login?expiresIn=${EXPIRES_IN}`;
